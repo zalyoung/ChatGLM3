@@ -46,27 +46,25 @@ def _resolve_path(path: Union[str, Path]) -> Path:
     return Path(path).expanduser().resolve()
 
 
-def load_model_and_tokenizer(
-        model_dir: Union[str, Path], trust_remote_code: bool = True
-) -> tuple[ModelType, TokenizerType]:
+def load_model_and_tokenizer(model_dir: Union[str, Path]) -> tuple[ModelType, TokenizerType]:
     model_dir = _resolve_path(model_dir)
     if (model_dir / 'adapter_config.json').exists():
         model = AutoPeftModelForCausalLM.from_pretrained(
-            model_dir, trust_remote_code=trust_remote_code, device_map='auto'
+            model_dir, trust_remote_code=True, device_map='auto'
         )
         tokenizer_dir = model.peft_config['default'].base_model_name_or_path
     else:
         model = AutoModelForCausalLM.from_pretrained(
-            model_dir, trust_remote_code=trust_remote_code, device_map='auto'
+            model_dir, trust_remote_code=True, device_map='auto'
         )
         tokenizer_dir = model_dir
     tokenizer = AutoTokenizer.from_pretrained(
-        tokenizer_dir, trust_remote_code=trust_remote_code
+        tokenizer_dir, trust_remote_code=True
     )
     return model, tokenizer
 
-
-model, tokenizer = load_model_and_tokenizer(MODEL_PATH, trust_remote_code=True)
+# model, tokenizer = load_model_and_tokenizer(MODEL_PATH, trust_remote_code=True)
+model, tokenizer = load_model_and_tokenizer("/root/ChatGLM3/finetune_demo/output/checkpoint-600")
 
 
 class StopOnTokens(StoppingCriteria):
@@ -174,4 +172,4 @@ with gr.Blocks() as demo:
     emptyBtn.click(lambda: None, None, chatbot, queue=False)
 
 demo.queue()
-demo.launch(server_name="127.0.0.1", server_port=7870, inbrowser=True, share=False)
+demo.launch(server_name="0.0.0.0", server_port=7870, inbrowser=True, share=False)
